@@ -1,43 +1,62 @@
 import os
 import logging
+import redis
 
-from collections import defaultdict
+from string import Template
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 from game import Game
 
 
+REDIS_CLIENT = redis.Redis(host="localhost", port=6379, db=0)
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-GAME = Game('countries.txt')
-USED_WORDS = defaultdict(list)
+GAME = Game('resources/countries.txt')
+USED_COUNTRIES_BY_USER = Template('used-countries:$user_id')
+COUNTRY_SEPARATOR = '|'
+SESSION_LIFE_TIME = 60
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
 
 
+def get_used_countries(user_id: int):
+    used_countries = REDIS_CLIENT.get(USED_COUNTRIES_BY_USER.substitute(user_id=user_id))
+    if used_countries is not None:
+        return [int(c) for c in used_countries.decode("utf-8").split(COUNTRY_SEPARATOR)]
+    return []
+
+
+def set_used_countries(user_id: int, used_countries: [int]):
+    REDIS_CLIENT.set(
+        name=USED_COUNTRIES_BY_USER.substitute(user_id=user_id),
+        value=COUNTRY_SEPARATOR.join([str(c) for c in used_countries]).encode("utf-8"),
+        ex=SESSION_LIFE_TIME
+    )
+
+
 def clear_user_data(user_id: int):
-    USED_WORDS[user_id].clear()
+    REDIS_CLIENT.delete(USED_COUNTRIES_BY_USER.substitute(user_id=user_id))
 
 
-def is_valid_move(update, user_id: int, user_country: str):
+def is_valid_move(update, user_country: str, used_countries: [str]):
     user_country_id = GAME.get_country_id(user_country)
 
     if user_country_id is None:
         update.message.reply_text(f'Never heard about "{user_country}". Try again.')
         return False
 
-    last_used_country = GAME.get_country(USED_WORDS[user_id][-1]) if USED_WORDS[user_id] else None
+    last_used_country = GAME.get_country(used_countries[-1]) if used_countries else None
     if last_used_country is not None and user_country[0].lower() != last_used_country[-1].lower():
         update.message.reply_text(
             f'Nooope. The country should starts with the "{last_used_country[-1].upper()}" letter.'
         )
         return False
 
-    if user_country_id in USED_WORDS[user_id]:
+    if user_country_id in used_countries:
         update.message.reply_text(f'Nooope. {user_country} have been used before.')
         return False
 
-    USED_WORDS[user_id].append(user_country_id)
+    used_countries.append(user_country_id)
     return True
 
 
@@ -45,25 +64,27 @@ def move_handler(update, context):
     if update.message:  # your bot can receive updates without messages
         user_id = update.effective_user['id']
         user_country = update.message.text
+        used_countries = get_used_countries(user_id)
 
-        if is_valid_move(update, user_id, user_country):
-            candidate_country_id, candidate_country = GAME.next_move(user_country, USED_WORDS[user_id])
-            if candidate_country_id is None:
-                clear_user_data(user_id)
-                update.message.reply_text(
-                    f'There is no more countries starts with "{user_country[-1]}" letter.\n'
-                    'Congratulations! You won.'
-                )
-            else:
-                USED_WORDS[user_id].append(candidate_country_id)
-                if GAME.have_candidates(candidate_country, USED_WORDS[user_id]):
+        if is_valid_move(update, user_country, used_countries):
+            candidate_country_id, candidate_country = GAME.next_move(user_country, used_countries)
+            if candidate_country_id is not None:
+                used_countries.append(candidate_country_id)
+                if GAME.have_candidates(candidate_country, used_countries):
                     update.message.reply_text(candidate_country)
+                    set_used_countries(user_id, used_countries)
                 else:
                     update.message.reply_text(
                         candidate_country +
                         f'\nI won. There is no more countries starts with "{candidate_country[-1]}" letter.'
                     )
                     clear_user_data(user_id)
+            else:
+                update.message.reply_text(
+                    'Congratulations! You won.'
+                    f'There is no more countries starts with "{user_country[-1]}" letter.\n'
+                )
+                clear_user_data(user_id)
 
 
 def start_handler(update, context):
@@ -76,7 +97,7 @@ def restart_handler(update, context):
 
 def error(update, context):
     """Log Errors caused by Updates."""
-    LOGGER.warning('Update "%s" caused error "%s"', update, context.error)
+    LOGGER.warning(f'The error "{context.error}" occurred in update "{str(update)}"')
 
 
 if __name__ == '__main__':
@@ -109,4 +130,5 @@ if __name__ == '__main__':
     # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
     # SIGABRT. This should be used most of the time, since start_polling() is
     # non-blocking and will stop the bot gracefully.
+    print('Service started...')
     updater.idle()

@@ -100,7 +100,7 @@ def error(update, context):
     LOGGER.warning(f'The error "{context.error}" occurred in update "{str(update)}"')
 
 
-if __name__ == '__main__':
+def run_bot():
     """Run bot."""
     # Create the Updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
@@ -132,3 +132,6 @@ if __name__ == '__main__':
     # non-blocking and will stop the bot gracefully.
     print('Service started...')
     updater.idle()
+
+
+run_bot()

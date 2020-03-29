@@ -19,6 +19,7 @@ COUNTRIES_SEPARATOR = CONFIG["redis-countries-separator"]
 
 TELEGRAM_TOKEN = CONFIG["telegram-bot-token"]
 GAME = Game(CONFIG["data-location"])
+RULES_TEXT = CONFIG["game-rules"]
 SESSION_LIFETIME = CONFIG["session-lifetime"]
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -95,36 +96,30 @@ def move_handler(update, context):
 
 def restart_handler(update, context):
     clear_user_data(update.effective_user['id'])
-    update.message.reply_text("I cleaned my memory. We're starting from scratch.\nYou turn")
+    update.message.reply_text("I cleaned my memory. We're starting from scratch.\nNow it's your turn")
+
+
+def help_handler(update, context):
+    intro = "Hi! I'm CountryChainBot and I can play a country chain game."
+    commands = ' - /restart - restart current game\n - /help - get help\n'
+    update.message.reply_text(
+        intro +
+        '\n\nRules:\n' + RULES_TEXT +
+        '\n\nCommands:\n' + commands
+    )
 
 
 def error(update, context):
-    """Log Errors caused by Updates."""
     LOGGER.warning(f'The error "{context.error}" occurred in update "{str(update)}"')
 
 
 def run_bot():
-    """Run bot."""
-    # Create the Updater and pass it your bot's token.
-    # Make sure to set use_context=True to use the new context based callbacks
-    # Post version 12 this will no longer be necessary
     updater = Updater(TELEGRAM_TOKEN, use_context=True)
-
-    # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
 
-    dispatcher.add_handler(CommandHandler("start", start_handler))
+    dispatcher.add_handler(CommandHandler("help", help_handler))
     dispatcher.add_handler(CommandHandler("restart", restart_handler))
     dispatcher.add_handler(MessageHandler(Filters.text, move_handler))
-    # on different commands - answer in Telegram
-    # dp.add_handler(CommandHandler("start", start))
-    # dp.add_handler(CommandHandler("help", start))
-    # dp.add_handler(CommandHandler("set", set_timer,
-    #                               pass_args=True,
-    #                               pass_job_queue=True,
-    #                               pass_chat_data=True))
-
-    # log all errors
     dispatcher.add_error_handler(error)
 
     # Start the Bot

@@ -83,15 +83,28 @@ def move_handler(update, context):
                 else:
                     update.message.reply_text(
                         candidate_country +
-                        f'\nI won. There is no more countries starts with "{candidate_country[-1]}" letter.'
+                        f'\nI won. There is no more countries starts with "{candidate_country[-1]}" letter.\n'
+                        'If you want to play a new game send me a country name.'
                     )
                     clear_user_data(user_id)
             else:
                 update.message.reply_text(
                     'Congratulations! You won.'
                     f'There is no more countries starts with "{user_country[-1]}" letter.\n'
+                    'If you want to play a new game send me a country name.'
                 )
                 clear_user_data(user_id)
+
+
+def get_help():
+    intro = "Hi! I'm CountryChainBot and I can play a country chain game."
+    commands = ' - /restart - restart current game\n - /help - get help\n'
+
+    return intro + '\n\nRules:\n' + RULES_TEXT + '\n\nCommands:\n' + commands
+
+
+def start_handler(update, context):
+    update.message.reply_text(get_help() + "\n\nIf you want to start a game send me any country name you want")
 
 
 def restart_handler(update, context):
@@ -100,13 +113,7 @@ def restart_handler(update, context):
 
 
 def help_handler(update, context):
-    intro = "Hi! I'm CountryChainBot and I can play a country chain game."
-    commands = ' - /restart - restart current game\n - /help - get help\n'
-    update.message.reply_text(
-        intro +
-        '\n\nRules:\n' + RULES_TEXT +
-        '\n\nCommands:\n' + commands
-    )
+    update.message.reply_text(get_help())
 
 
 def error(update, context):
@@ -117,8 +124,9 @@ def run_bot():
     updater = Updater(TELEGRAM_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
 
-    dispatcher.add_handler(CommandHandler("help", help_handler))
+    dispatcher.add_handler(CommandHandler("start", start_handler))
     dispatcher.add_handler(CommandHandler("restart", restart_handler))
+    dispatcher.add_handler(CommandHandler("help", help_handler))
     dispatcher.add_handler(MessageHandler(Filters.text, move_handler))
     dispatcher.add_error_handler(error)
 

@@ -5,7 +5,7 @@ American Samoa
 Andorra
 Angola
 Anguilla
-Antigua & Barbuda
+Antigua and Barbuda
 Argentina
 Armenia
 Aruba
@@ -22,7 +22,7 @@ Benin
 Bermuda
 Bhutan
 Bolivia
-Bosnia & Herzegovina
+Bosnia and Herzegovina
 Botswana
 Brazil
 British Virgin Islands
@@ -168,13 +168,13 @@ Russia
 Rwanda
 Republic of the Congo
 Saint Helena
-Saint Kitts & Nevis
+Saint Kitts and Nevis
 Saint Lucia
-St Pierre & Miquelon
+St Pierre and Miquelon
 Saint Vincent and the Grenadines
 Samoa
 San Marino
-Sao Tome & Principe
+Sao Tome and Principe
 Saudi Arabia
 Senegal
 Serbia
@@ -200,7 +200,7 @@ Tanzania
 Thailand
 Togo
 Tonga
-Trinidad & Tobago
+Trinidad and Tobago
 Tunisia
 Turkey
 Turkmenistan

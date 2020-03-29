@@ -93,12 +93,9 @@ def move_handler(update, context):
                 clear_user_data(user_id)
 
 
-def start_handler(update, context):
-    update.message.reply_text('Start')
-
-
 def restart_handler(update, context):
-    update.message.reply_text('Restart')
+    clear_user_data(update.effective_user['id'])
+    update.message.reply_text("I cleaned my memory. We're starting from scratch.\nYou turn")
 
 
 def error(update, context):

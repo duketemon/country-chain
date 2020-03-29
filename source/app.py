@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 import redis
 
@@ -8,12 +9,17 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from game import Game
 
 
-REDIS_CLIENT = redis.Redis(host="localhost", port=6379, db=0)
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-GAME = Game('resources/countries.txt')
-USED_COUNTRIES_BY_USER = Template('used-countries:$user_id')
-COUNTRY_SEPARATOR = '|'
-SESSION_LIFE_TIME = 60
+with open('resources/service.config') as json_file:
+    CONFIG = json.load(json_file)
+
+
+REDIS_CLIENT = redis.Redis(host=CONFIG["redis-host"], port=CONFIG["redis-port"], db=0)
+USED_COUNTRIES_BY_USER = Template(CONFIG["redis-used-countries-template"])
+COUNTRIES_SEPARATOR = CONFIG["redis-countries-separator"]
+
+TELEGRAM_TOKEN = CONFIG["telegram-bot-token"]
+GAME = Game(CONFIG["data-location"])
+SESSION_LIFETIME = CONFIG["session-lifetime"]
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
@@ -22,15 +28,15 @@ LOGGER = logging.getLogger(__name__)
 def get_used_countries(user_id: int):
     used_countries = REDIS_CLIENT.get(USED_COUNTRIES_BY_USER.substitute(user_id=user_id))
     if used_countries is not None:
-        return [int(c) for c in used_countries.decode("utf-8").split(COUNTRY_SEPARATOR)]
+        return [int(c) for c in used_countries.decode("utf-8").split(COUNTRIES_SEPARATOR)]
     return []
 
 
 def set_used_countries(user_id: int, used_countries: [int]):
     REDIS_CLIENT.set(
         name=USED_COUNTRIES_BY_USER.substitute(user_id=user_id),
-        value=COUNTRY_SEPARATOR.join([str(c) for c in used_countries]).encode("utf-8"),
-        ex=SESSION_LIFE_TIME
+        value=COUNTRIES_SEPARATOR.join([str(c) for c in used_countries]).encode("utf-8"),
+        ex=SESSION_LIFETIME
     )
 
 

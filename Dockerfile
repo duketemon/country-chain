@@ -19,7 +19,6 @@ WORKDIR /usr/src/app
 COPY . .
 RUN pip install -r requirements.txt
 
-ENV TELEGRAM_BOT_TOKEN INSERT_TELEGRAM_BOT_TOKEN_HERE
 WORKDIR /usr/src/app/source
 CMD /usr/local/bin/redis-server --daemonize yes &&\
     python app.py

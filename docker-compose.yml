@@ -1,0 +1,23 @@
+version: '3.1'
+
+services:
+    redis_db:
+        image: redis:6.0
+        container_name: redis_db
+        network_mode: bridge
+    game:
+        image: country-chain-bot
+        container_name: game
+        build: .
+        environment:
+            - REDIS_URL=redis://redis_db:6379/0
+            - REDIS_KEY_LIFETIME=3600
+            - TELEGRAM_TOKEN=PUT_YOUR_TELEGRAM:TOKEN_HERE
+            - COUNTRIES_DATA_LOCATION=resources/countries.txt
+            - RULES_TEXT=Country chain is a word game in which players come up with countries that begin with the letter that the previous word ended with and countries may not be repeated in the same game.
+        depends_on:
+            - redis_db
+        links:
+            - redis_db:redis_db
+        network_mode: bridge
+        restart: always

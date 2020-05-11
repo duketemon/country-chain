@@ -1,20 +1,17 @@
-[CountryChainBot](http://t.me/CountryChainBot) is a Telegram bot that knows how to play a country chain game.
+[Country Chain Bot](http://t.me/CountryChainBot) is a telegram bot which implements the «country chain» game
 
-## How to run it locally
-1. [Create](https://core.telegram.org/bots#creating-a-new-bot) a Telegram bot
+## How to run the bot
+1. [Create](https://core.telegram.org/bots#creating-a-new-bot) a telegram bot
 2. [Install](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-engine---community) docker
-3. Clone the repository
+3. [Install](https://docs.docker.com/compose/install) docker compose
+4. Clone the repository
 ```bash
 git clone https://github.com/duketemon/country-chain.git
 ```
-4. Put your Telegram bot token to the [config file](https://github.com/duketemon/country-chain/blob/master/source/resources/service.config)
-5. Build a docker container
+5. Put your telegram bot token to the [docker-compose](https://github.com/duketemon/country-chain/blob/master/docker-compose.yml) file
+6. Run the following command
 ```bash
-docker build . -t bot
-```
-6. Run the docker container
-```bash
-docker run -d bot
+sudo docker-compose up -d
 ```
 7. Play using a Telegram client
 

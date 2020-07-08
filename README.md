@@ -1,4 +1,4 @@
-[Country Chain Bot](http://t.me/CountryChainBot) is a telegram bot which implements the «country chain» game
+Country Chain Bot is a telegram bot which implements the «country chain» game
 
 ## How to run the bot
 1. [Create](https://core.telegram.org/bots#creating-a-new-bot) a telegram bot
